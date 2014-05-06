@@ -64,8 +64,22 @@ module Mongoid
 
         # Redefine 'index' to include the tenant field in first position
         def index(spec, options = nil)
-          spec = { self.tenant_field => 1 }.merge(spec)
+          spec = index_spec_for_options(spec, options)
           super(spec, options)
+        end
+
+        def index_spec_for_options(spec, options = nil)
+          set_compound_index = if options
+            options.delete(:multitenancy)
+          else
+            true
+          end
+
+          if set_compound_index
+            { self.tenant_field => 1 }.merge(spec)
+          else
+            spec
+          end
         end
 
         # Redefine 'delete_all' to take in account the default scope
